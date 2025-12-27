@@ -1,0 +1,65 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  background: #f4f6f8;
+}
+
+.container {
+  padding: 20px;
+}
+
+.card {
+  background: white;
+  padding: 15px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+button {
+  padding: 6px 12px;
+  margin: 5px 5px 0 0;
+  border: none;
+  border-radius: 4px;
+  background: #1976d2;
+  color: white;
+  cursor: pointer;
+}
+
+button.secondary {
+  background: #555;
+}
+
+input, select {
+  padding: 8px;
+  margin: 6px 0;
+  width: 100%;
+}
+
+.navbar {
+  background: #0d47a1;
+  padding: 10px;
+  color: white;
+}
+
+.navbar a {
+  color: white;
+  margin-right: 15px;
+  text-decoration: none;
+}
+
+.kanban {
+  display: flex;
+  gap: 15px;
+}
+
+.column {
+  width: 25%;
+  background: #e3e7eb;
+  padding: 10px;
+  border-radius: 6px;
+}
+
+.overdue {
+  border-left: 5px solid red;
+}
