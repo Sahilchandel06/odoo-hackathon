@@ -105,43 +105,171 @@ const KanbanCard = ({ request, onDragStart }) => {
         .toUpperCase()
     : "?";
 
+  // Status configuration
+  const getStatusConfig = (status) => {
+    const configs = {
+      "New": {
+        icon: "🆕",
+        color: "#3b82f6",
+        glow: "rgba(59, 130, 246, 0.4)",
+        gradient: "linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.05))"
+      },
+      "In Progress": {
+        icon: "⚙️",
+        color: "#10b981",
+        glow: "rgba(16, 185, 129, 0.4)",
+        gradient: "linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05))"
+      },
+      "Repaired": {
+        icon: "✅",
+        color: "#06b6d4",
+        glow: "rgba(6, 182, 212, 0.4)",
+        gradient: "linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(6, 182, 212, 0.05))"
+      },
+      "Scrap": {
+        icon: "🗑️",
+        color: "#ef4444",
+        glow: "rgba(239, 68, 68, 0.4)",
+        gradient: "linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.05))"
+      }
+    };
+    return configs[status] || configs["New"];
+  };
+
+  const statusConfig = getStatusConfig(request.status);
+
   return (
     <div
       className={"kanban-card" + (overdue ? " kanban-card-overdue" : "")}
       draggable
       onDragStart={(e) => onDragStart(e, request._id)}
+      style={{
+        background: statusConfig.gradient,
+        borderLeft: `5px solid ${statusConfig.color}`,
+      }}
     >
-      {overdue && <div className="kanban-card-stripe" />}
+      {/* Status Icon Badge - Level 1 (Highest) */}
+      <div 
+        className="kanban-card-status-badge" 
+        style={{
+          background: statusConfig.color,
+          boxShadow: `0 0 20px ${statusConfig.glow}, 0 4px 8px rgba(0,0,0,0.3)`
+        }}
+      >
+        <span className="kanban-status-icon">{statusConfig.icon}</span>
+      </div>
 
+      {/* Main Content - Level 2 */}
       <div className="kanban-card-main-with-avatar">
-        <div>
-          <div className="kanban-card-title">{request.subject}</div>
-          <div className="kanban-card-sub">
+        <div style={{ flex: 1 }}>
+          {/* Primary Title - Largest, Boldest */}
+          <div 
+            className="kanban-card-title"
+            style={{
+              fontSize: '17px',
+              fontWeight: 800,
+              letterSpacing: '0.3px',
+              opacity: 1,
+              lineHeight: 1.3,
+              marginBottom: '10px',
+              color: 'var(--text-main)',
+            }}
+          >
+            {request.subject}
+          </div>
+          
+          {/* Secondary Info - Medium size, reduced opacity */}
+          <div 
+            className="kanban-card-sub"
+            style={{
+              fontSize: '13px',
+              fontWeight: 600,
+              opacity: 0.75,
+              color: 'var(--text-soft)',
+              letterSpacing: '0.2px',
+            }}
+          >
             {request.equipment?.name || "No equipment"}
           </div>
         </div>
-        <div className="avatar">
-          <span className="avatar-initials">{initials}</span>
-        </div>
       </div>
 
-      <div className="kanban-card-meta">
+      {/* Meta Section - Level 4 (Supporting) */}
+      <div className="kanban-card-meta" style={{ marginTop: '16px' }}>
         <div className="kanban-card-meta-left">
+          {/* Location - Tertiary info */}
           {request.equipment?.location && (
-            <span>{request.equipment.location}</span>
+            <span style={{
+              fontSize: '11px',
+              fontWeight: 600,
+              opacity: 0.65,
+              color: 'var(--text-muted)',
+              letterSpacing: '0.3px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}>
+              <span style={{ fontSize: '13px', opacity: 0.8 }}>📍</span>
+              {request.equipment.location}
+            </span>
           )}
+          
+          {/* Date - Tertiary info */}
           {request.scheduledDate && (
-            <span>
-              Scheduled:{" "}
+            <span style={{
+              fontSize: '11px',
+              fontWeight: 600,
+              opacity: 0.65,
+              color: 'var(--text-muted)',
+              letterSpacing: '0.3px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              marginTop: '4px',
+            }}>
+              <span style={{ fontSize: '13px', opacity: 0.8 }}>📅</span>
               {new Date(request.scheduledDate).toLocaleDateString()}
             </span>
           )}
         </div>
-        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-          <span className="kanban-pill">{request.type}</span>
-          {overdue && <span className="kanban-pill-danger">Overdue</span>}
+
+        {/* Pills - Level 5 (Labels) */}
+        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+          <span 
+            className="kanban-pill" 
+            style={{
+              borderColor: statusConfig.color,
+              color: statusConfig.color,
+              fontSize: '10px',
+              fontWeight: 800,
+              opacity: 0.9,
+              letterSpacing: '0.5px',
+              textTransform: 'uppercase',
+              padding: '6px 12px',
+            }}
+          >
+            {request.type}
+          </span>
+          
+          {overdue && (
+            <span 
+              className="kanban-pill-danger"
+              style={{
+                fontSize: '10px',
+                fontWeight: 800,
+                letterSpacing: '0.5px',
+                textTransform: 'uppercase',
+                padding: '6px 12px',
+                animation: 'overdueGlow 2s ease-in-out infinite',
+              }}
+            >
+              ⚠️ OVERDUE
+            </span>
+          )}
         </div>
       </div>
     </div>
   );
 };
+
+

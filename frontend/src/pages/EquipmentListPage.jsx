@@ -82,7 +82,6 @@ const EquipmentListPage = () => {
                 <th>Equipment</th>
                 <th>Department</th>
                 <th>Location</th>
-                <th>Employee</th>
                 <th>Team</th>
                 <th>Status</th>
                 <th>Maintenance</th>
@@ -91,20 +90,20 @@ const EquipmentListPage = () => {
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={7} style={{ padding: 20 }}>
+                  <td colSpan={6} style={{ padding: 20 }}>
                     Loading equipment...
                   </td>
                 </tr>
               )}
               {!loading && filteredEquipment.length === 0 && (
                 <tr>
-                  <td colSpan={7} style={{ padding: 20 }}>
+                  <td colSpan={6} style={{ padding: 20 }}>
                     No equipment yet. Add your first asset.
                   </td>
                 </tr>
               )}
               {!loading &&
-                filteredEquipment.map((e) => (
+                filteredEquipment.map((e) =>  (
                   <tr key={e._id}>
                     <td>
                       <div style={{ fontSize: 13, fontWeight: 500 }}>
@@ -123,7 +122,6 @@ const EquipmentListPage = () => {
                     </td>
                     <td>{e.department || "-"}</td>
                     <td>{e.location || "-"}</td>
-                    <td>{e.assignedEmployee?.name || "-"}</td>
                     <td>{e.maintenanceTeam?.name || "-"}</td>
                     <td>
                       {e.isScrapped ? (

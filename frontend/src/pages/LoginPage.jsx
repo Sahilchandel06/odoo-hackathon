@@ -27,7 +27,7 @@ const LoginPage = () => {
           <h1
             style={{
               marginTop: 10,
-              fontSize: 18,
+              fontSize: 30,
               fontWeight: 600,
             }}
           >
@@ -36,7 +36,7 @@ const LoginPage = () => {
           <p
             style={{
               marginTop: 4,
-              fontSize: 12,
+              fontSize: 14,
               color: "var(--text-soft)",
             }}
           >
@@ -71,15 +71,17 @@ const LoginPage = () => {
                 required
               />
             </div>
-
-            <button
-              type="submit"
-              className="btn btn-primary"
-              style={{ width: "100%", marginTop: 4 }}
-              disabled={loading}
-            >
-              {loading ? "Signing in..." : "Sign in"}
-            </button>
+            
+            <div style={{ display:'flex', justifyContent:'center' }}>
+              <button
+                type="submit"
+                className="btn btn-primary"
+                style={{ marginTop: 4 }}
+                disabled={loading}
+              >
+                {loading ? "Signing in..." : "Sign in"}
+              </button>
+            </div>
           </form>
         </div>
 
