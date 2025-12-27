@@ -94,13 +94,12 @@ Develop a maintenance management system that allows companies to:
 
 ---
 <img src="./images/dashboard.png" alt="Screenshot 1" />
-<img src="./images/page 2.png" alt="Screenshot 2" />
-<img src="./images/page 3.png" alt="Screenshot 3" />
-<img src="./images/page4.png" alt="Screenshot 4" />
-<img src="./images/page 5.png" alt="Screenshot 5" />
-<img src="./images/page 6.png" alt="Screenshot 6" />
-<img src="./images/page 7.png" alt="Screenshot 7" />
-<img src="./images/page 8.png" alt="Screenshot 8" />
+<img src="./images/calendar.png" alt="Screenshot 2" />
+<img src="./images/equipment.png" alt="Screenshot 3" />
+<img src="./images/kanban.png" alt="Screenshot 4" />
+<img src="./images/req.png" alt="Screenshot 5" />
+<img src="./images/reports.png" alt="Screenshot 6" />
+<img src="./images/teams.png" alt="Screenshot 7" />
 
 
 ## 🛠️ Tech Stack
