@@ -5,7 +5,6 @@ import api from "../api";
 import {
   Box,
   Card,
-  CardContent,
   Typography,
   Table,
   TableBody,
@@ -15,10 +14,11 @@ import {
   TableRow,
   TablePagination,
   Chip,
-  Paper,
-  Fade,
+  Button,
   CircularProgress,
+  IconButton,
 } from "@mui/material";
+import { Add, Visibility } from "@mui/icons-material";
 
 const EquipmentListPage = () => {
   const [equipment, setEquipment] = useState([]);
@@ -33,116 +33,151 @@ const EquipmentListPage = () => {
     });
   }, []);
 
-  const statusChip = (status) => (
-    <Chip
-      label={status}
-      size="small"
-      color={status === "Active" ? "success" : "error"}
-      variant="outlined"
-    />
-  );
+  const getStatusColor = (status) => {
+    const colors = {
+      Active: "success",
+      Maintenance: "warning",
+      Inactive: "error",
+      Scrapped: "default",
+    };
+    return colors[status] || "default";
+  };
 
   if (loading) {
     return (
-      <Fade in timeout={300}>
-        <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
-          <CircularProgress size={32} />
-        </Box>
-      </Fade>
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
+        <CircularProgress />
+      </Box>
     );
   }
 
   return (
-    <Fade in timeout={300}>
-      <Box>
-        <Box mb={3}>
-          <Typography variant="h5" gutterBottom>
-            Equipment inventory
+    <Box>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Box>
+          <Typography variant="h5" fontWeight={700} gutterBottom>
+            Equipment Inventory
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            All registered equipment across departments and locations.
+            All registered equipment across departments and locations
           </Typography>
         </Box>
-
-        <Paper
-          elevation={8}
+        <Button
+          variant="contained"
+          startIcon={<Add />}
+          component={Link}
+          to="/equipment/new"
           sx={{
-            borderRadius: 3,
-            overflow: "hidden",
-            bgcolor: "rgba(15,23,42,0.95)",
+            borderRadius: 1.5,
+            textTransform: "none",
+            fontWeight: 600,
           }}
         >
-          <TableContainer sx={{ maxHeight: 600 }}>
-            <Table stickyHeader size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Type</TableCell>
-                  <TableCell>Location</TableCell>
-                  <TableCell>Department</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {equipment
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((eq) => (
-                    <TableRow
-                      key={eq._id}
-                      hover
-                      sx={{
-                        cursor: "pointer",
-                        "&:hover": { bgcolor: "rgba(15,23,42,0.9)" },
-                      }}
-                    >
-                      <TableCell>
-                        <Box>
-                          <Typography variant="subtitle2" fontWeight={500}>
-                            {eq.name}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            ID: {eq._id.slice(-6)}
-                          </Typography>
-                        </Box>
-                      </TableCell>
-                      <TableCell>{eq.type}</TableCell>
-                      <TableCell>{eq.location}</TableCell>
-                      <TableCell>{eq.department}</TableCell>
-                      <TableCell>{statusChip(eq.status)}</TableCell>
-                      <TableCell>
-                        <Button
-                          component={Link}
-                          to={`/equipment/${eq._id}`}
-                          size="small"
-                          variant="outlined"
-                          sx={{ borderRadius: 2, fontSize: 12 }}
-                        >
-                          View
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <TablePagination
-            component="div"
-            count={equipment.length}
-            page={page}
-            onPageChange={(e, newPage) => setPage(newPage)}
-            rowsPerPage={rowsPerPage}
-            onRowsPerPageChange={(e) => setRowsPerPage(parseInt(e.target.value))}
-            rowsPerPageOptions={[10, 25, 50]}
-            sx={{
-              borderTop: "1px solid",
-              borderColor: "divider",
-              bgcolor: "rgba(2,6,23,0.8)",
-            }}
-          />
-        </Paper>
+          Add Equipment
+        </Button>
       </Box>
-    </Fade>
+
+      <Card elevation={2}>
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow sx={{ bgcolor: "background.paper" }}>
+                <TableCell sx={{ fontWeight: 600 }}>Name</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Serial Number</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Location</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Department</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
+                <TableCell sx={{ fontWeight: 600 }} align="right">
+                  Actions
+                </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {equipment
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((eq) => (
+                  <TableRow
+                    key={eq._id}
+                    hover
+                    sx={{
+                      "&:last-child td": { border: 0 },
+                    }}
+                  >
+                    <TableCell>
+                      <Typography variant="body2" fontWeight={600}>
+                        {eq.name}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        ID: {eq._id?.slice(-6)}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">{eq.serialNumber || "—"}</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">{eq.location || "—"}</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">{eq.department || "—"}</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={eq.isScrapped ? "Scrapped" : "Active"}
+                        size="small"
+                        color={eq.isScrapped ? "default" : "success"}
+                        sx={{ borderRadius: 1 }}
+                      />
+                    </TableCell>
+                    <TableCell align="right">
+                      <IconButton
+                        component={Link}
+                        to={`/equipment/${eq._id}`}
+                        size="small"
+                        sx={{ color: "primary.main" }}
+                      >
+                        <Visibility fontSize="small" />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <TablePagination
+          component="div"
+          count={equipment.length}
+          page={page}
+          onPageChange={(e, newPage) => setPage(newPage)}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={(e) => setRowsPerPage(parseInt(e.target.value))}
+          rowsPerPageOptions={[10, 25, 50]}
+          sx={{
+            borderTop: "1px solid",
+            borderColor: "divider",
+          }}
+        />
+      </Card>
+
+      {equipment.length === 0 && (
+        <Box textAlign="center" py={8}>
+          <Typography variant="h6" color="text.secondary" gutterBottom>
+            No equipment found
+          </Typography>
+          <Typography variant="body2" color="text.secondary" mb={3}>
+            Start by adding your first equipment item
+          </Typography>
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            component={Link}
+            to="/equipment/new"
+            sx={{ borderRadius: 1.5, textTransform: "none", fontWeight: 600 }}
+          >
+            Add Equipment
+          </Button>
+        </Box>
+      )}
+    </Box>
   );
 };
 

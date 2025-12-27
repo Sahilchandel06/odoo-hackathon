@@ -1,165 +1,185 @@
 // KanbanPage.jsx
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import api from "../api";
 import {
   Box,
-  Typography,
-  Grid,
   Card,
   CardContent,
+  Typography,
   Chip,
-  CircularProgress,
-  Fade,
+  Grid,
   Stack,
+  CircularProgress,
+  Button,
 } from "@mui/material";
-import KanbanColumn from "../components/KanbanColumn";
-
-const STAGES = [
-  { key: "New", label: "New" },
-  { key: "In Progress", label: "In Progress" },
-  { key: "Repaired", label: "Repaired" },
-  { key: "Scrap", label: "Scrap" },
-];
+import { Add } from "@mui/icons-material";
 
 const KanbanPage = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const load = async () => {
-    setLoading(true);
-    const res = await api.get("/requests");
-    setRequests(res.data);
-    setLoading(false);
-  };
-
   useEffect(() => {
-    load();
+    api
+      .get("/requests")
+      .then((res) => {
+        setRequests(res.data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Failed to load requests:", err);
+        setLoading(false);
+      });
   }, []);
 
-  const grouped = useMemo(() => {
-    const base = {
-      New: [],
-      "In Progress": [],
-      Repaired: [],
-      Scrap: [],
+  const getStatusColor = (status) => {
+    const colors = {
+      New: "info",
+      "In Progress": "warning",
+      Repaired: "success",
+      Scrap: "error",
     };
-    requests.forEach((r) => {
-      const s = r.status || "New";
-      base[s] = [...(base[s] || []), r];
-    });
-    return base;
-  }, [requests]);
+    return colors[status] || "default";
+  };
+
+  const columns = [
+    { status: "New", title: "New Requests" },
+    { status: "In Progress", title: "In Progress" },
+    { status: "Repaired", title: "Completed" },
+    { status: "Scrap", title: "Scrapped" },
+  ];
+
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
-    <Fade in timeout={300}>
-      <Box>
-        <Box mb={3}>
-          <Typography variant="h5" gutterBottom>
-            Kanban board
+    <Box>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Box>
+          <Typography variant="h5" fontWeight={700} gutterBottom>
+            Kanban Board
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Drag and drop requests between stages to control the full lifecycle.
+            Track maintenance requests through workflow stages
           </Typography>
         </Box>
+        <Button
+          component={Link}
+          to="/requests/new"
+          variant="contained"
+          startIcon={<Add />}
+          sx={{
+            borderRadius: 1.5,
+            textTransform: "none",
+            fontWeight: 600,
+          }}
+        >
+          New Request
+        </Button>
+      </Box>
 
-        {loading ? (
-          <Box
-            sx={{
-              minHeight: 280,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Stack alignItems="center" spacing={2}>
-              <CircularProgress size={28} />
-              <Typography variant="body2" color="text.secondary">
-                Loading requests…
-              </Typography>
-            </Stack>
-          </Box>
-        ) : (
-          <Grid container spacing={2}>
-            {STAGES.map((s) => (
-              <Grid item xs={12} sm={6} md={3} key={s.key}>
-                <Card
-                  elevation={6}
-                  sx={{
-                    height: "100%",
-                    display: "flex",
-                    flexDirection: "column",
-                    bgcolor: "rgba(15,23,42,0.96)",
-                    borderRadius: 3,
-                    overflow: "hidden",
-                    backdropFilter: "blur(10px)",
-                    border: "1px solid rgba(31,41,55,0.9)",
-                  }}
-                >
-                  <CardContent
-                    sx={{
-                      borderBottom: "1px solid",
-                      borderColor: "divider",
-                      pb: 1.5,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                    }}
-                  >
-                    <Box>
-                      <Typography
-                        variant="subtitle2"
-                        sx={{ fontSize: 13, fontWeight: 600 }}
-                      >
-                        {s.label}
-                      </Typography>
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        sx={{ fontSize: 11 }}
-                      >
-                        Stage in the maintenance pipeline
-                      </Typography>
-                    </Box>
-                    <Chip
-                      label={`${grouped[s.key]?.length || 0}`}
-                      size="small"
-                      color={
-                        s.key === "New"
-                          ? "info"
-                          : s.key === "In Progress"
-                          ? "warning"
-                          : s.key === "Repaired"
-                          ? "success"
-                          : "error"
-                      }
-                      variant="outlined"
-                      sx={{ fontSize: 11 }}
-                    />
-                  </CardContent>
+      <Grid container spacing={2}>
+        {columns.map((column) => {
+          const columnRequests = requests.filter((r) => r.status === column.status);
 
+          return (
+            <Grid item xs={12} sm={6} md={3} key={column.status}>
+              <Card
+                elevation={2}
+                sx={{
+                  height: "100%",
+                  minHeight: 200,
+                  minWidth: 200,
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
+                <CardContent sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
                   <Box
-                    sx={{
-                      flex: 1,
-                      p: 1.5,
-                      overflowY: "auto",
-                    }}
+                    display="flex"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    mb={2}
                   >
-                    <KanbanColumn
-                      stage={s.key}
-                      requests={grouped[s.key] || []}
-                      onStatusChange={async (id, status) => {
-                        await api.patch(`/requests/${id}`, { status });
-                        load();
-                      }}
+                    <Typography variant="h6" fontWeight={600}>
+                      {column.title}
+                    </Typography>
+                    <Chip
+                      label={columnRequests.length}
+                      size="small"
+                      color={getStatusColor(column.status)}
+                      sx={{ borderRadius: 1, fontWeight: 600 }}
                     />
                   </Box>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
-        )}
-      </Box>
-    </Fade>
+
+                  <Stack spacing={2} sx={{ flex: 1, overflowY: "auto" }}>
+                    {columnRequests.map((request) => (
+                      <Card
+                        key={request._id}
+                        variant="outlined"
+                        component={Link}
+                        to={`/requests/${request._id}`}
+                        sx={{
+                          textDecoration: "none",
+                          transition: "all 0.2s",
+                          "&:hover": {
+                            borderColor: "primary.main",
+                            boxShadow: 2,
+                          },
+                        }}
+                      >
+                        <CardContent>
+                          <Typography variant="body2" fontWeight={600} gutterBottom>
+                            {request.subject}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary" display="block" mb={1}>
+                            {request.equipment?.name || "Unassigned"}
+                          </Typography>
+                          <Stack direction="row" spacing={0.5}>
+                            <Chip
+                              label={request.type}
+                              size="small"
+                              variant="outlined"
+                              sx={{ fontSize: "0.7rem", height: 20, borderRadius: 0.5 }}
+                            />
+                            {request.priority && (
+                              <Chip
+                                label={request.priority}
+                                size="small"
+                                color="error"
+                                variant="outlined"
+                                sx={{ fontSize: "0.7rem", height: 20, borderRadius: 0.5 }}
+                              />
+                            )}
+                          </Stack>
+                        </CardContent>
+                      </Card>
+                    ))}
+
+                    {columnRequests.length === 0 && (
+                      <Box
+                        sx={{
+                          textAlign: "center",
+                          py: 4,
+                          color: "text.secondary",
+                        }}
+                      >
+                        <Typography variant="body2">No requests</Typography>
+                      </Box>
+                    )}
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grid>
+          );
+        })}
+      </Grid>
+    </Box>
   );
 };
 

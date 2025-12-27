@@ -1,137 +1,138 @@
-// EquipmentRequestsPage.jsx
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import api from "../api";
-import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TablePagination,
-  Chip,
-  Paper,
-  Fade,
-  CircularProgress,
-  Stack,
-  Button,
-} from "@mui/material";
-import {
-  FilterList,
-  Search,
-  Add as AddIcon,
-} from "@mui/icons-material";
+  // EquipmentRequestsPage.jsx
+  import { useEffect, useState } from "react";
+  import { Link } from "react-router-dom";
+  import api from "../api";
+  import {
+    Box,
+    Card,
+    Typography,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    TablePagination,
+    Chip,
+    CircularProgress,
+    Stack,
+    Button,
+    TextField,
+    InputAdornment,
+  } from "@mui/material";
+  import {
+    Search,
+    Add,
+    Visibility,
+  } from "@mui/icons-material";
 
-const statusChip = (status) => {
-  const colors = {
-    New: "info",
-    "In Progress": "warning",
-    Repaired: "success",
-    Scrap: "error",
-  };
-  return (
-    <Chip
-      label={status}
-      size="small"
-      color={colors[status] || "default"}
-      variant="outlined"
-      sx={{ fontSize: 11, height: 24 }}
-    />
-  );
-};
+  const EquipmentRequestsPage = () => {
+    const [requests, setRequests] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [search, setSearch] = useState("");
 
-const EquipmentRequestsPage = () => {
-  const [requests, setRequests] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(15);
-  const [search, setSearch] = useState("");
+    useEffect(() => {
+      api
+        .get("/requests")
+        .then((res) => {
+          setRequests(res.data);
+          setLoading(false);
+        })
+        .catch((err) => {
+          console.error("Failed to load requests:", err);
+          setLoading(false);
+        });
+    }, []);
 
-  useEffect(() => {
-    api.get("/requests").then((res) => {
-      setRequests(res.data);
-      setLoading(false);
-    });
-  }, []);
+    const getStatusColor = (status) => {
+      const colors = {
+        New: "info",
+        "In Progress": "warning",
+        Repaired: "success",
+        Scrap: "error",
+      };
+      return colors[status] || "default";
+    };
 
-  const filteredRequests = requests.filter((r) =>
-    r.subject.toLowerCase().includes(search.toLowerCase()) ||
-    r.equipment?.name?.toLowerCase().includes(search.toLowerCase())
-  );
-
-  if (loading) {
-    return (
-      <Fade in timeout={300}>
-        <Box sx={{ display: "flex", justifyContent: "center", py: 12 }}>
-          <CircularProgress size={36} />
-        </Box>
-      </Fade>
+    const filteredRequests = requests.filter(
+      (r) =>
+        r.subject?.toLowerCase().includes(search.toLowerCase()) ||
+        r.equipment?.name?.toLowerCase().includes(search.toLowerCase())
     );
-  }
 
-  return (
-    <Fade in timeout={300}>
+    if (loading) {
+      return (
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
+          <CircularProgress />
+        </Box>
+      );
+    }
+
+    return (
       <Box>
-        <Box mb={4} sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 2 }}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
           <Box>
-            <Typography variant="h5" gutterBottom>
-              Maintenance requests
+            <Typography variant="h5" fontWeight={700} gutterBottom>
+              Maintenance Requests
             </Typography>
             <Typography variant="body2" color="text.secondary">
               All equipment maintenance requests across departments
             </Typography>
           </Box>
-          <Stack direction="row" spacing={1}>
-            <Button
-              variant="outlined"
-              startIcon={<Search />}
-              sx={{ borderRadius: 2 }}
-              size="small"
-            >
-              Filter
-            </Button>
-            <Button
-              component={Link}
-              to="/requests/new"
-              variant="contained"
-              startIcon={<AddIcon />}
-              sx={{
-                borderRadius: 2,
-                boxShadow: "0 12px 30px rgba(34,197,94,0.4)",
-                fontWeight: 600,
-              }}
-            >
-              New Request
-            </Button>
-          </Stack>
+          <Button
+            component={Link}
+            to="/requests/new"
+            variant="contained"
+            startIcon={<Add />}
+            sx={{
+              borderRadius: 1.5,
+              textTransform: "none",
+              fontWeight: 600,
+            }}
+          >
+            New Request
+          </Button>
         </Box>
 
-        <Paper
-          elevation={12}
-          sx={{
-            borderRadius: 4,
-            overflow: "hidden",
-            bgcolor: "rgba(15,23,42,0.97)",
-            border: "1px solid rgba(31,41,55,0.9)",
-            backdropFilter: "blur(12px)",
-          }}
-        >
-          <TableContainer sx={{ maxHeight: 700 }}>
-            <Table stickyHeader size="small">
+        <Box mb={3}>
+          <TextField
+            fullWidth
+            placeholder="Search by subject or equipment..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            size="small"
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search sx={{ color: "text.secondary" }} />
+                </InputAdornment>
+              ),
+            }}
+            sx={{
+              maxWidth: 400,
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 1.5,
+                bgcolor: "background.paper",
+              },
+            }}
+          />
+        </Box>
+
+        <Card elevation={2}>
+          <TableContainer>
+            <Table>
               <TableHead>
-                <TableRow>
-                  <TableCell sx={{ bgcolor: "rgba(2,6,23,0.95)" }}>Subject</TableCell>
-                  <TableCell sx={{ bgcolor: "rgba(2,6,23,0.95)" }}>Equipment</TableCell>
-                  <TableCell sx={{ bgcolor: "rgba(2,6,23,0.95)" }}>Department</TableCell>
-                  <TableCell sx={{ bgcolor: "rgba(2,6,23,0.95)" }}>Status</TableCell>
-                  <TableCell sx={{ bgcolor: "rgba(2,6,23,0.95)" }}>Priority</TableCell>
-                  <TableCell sx={{ bgcolor: "rgba(2,6,23,0.95)", width: 140 }}>Scheduled</TableCell>
-                  <TableCell sx={{ bgcolor: "rgba(2,6,23,0.95)" }}>Actions</TableCell>
+                <TableRow sx={{ bgcolor: "background.paper" }}>
+                  <TableCell sx={{ fontWeight: 600 }}>Subject</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Equipment</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Type</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Scheduled</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }} align="right">
+                    Actions
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -141,90 +142,104 @@ const EquipmentRequestsPage = () => {
                     <TableRow
                       key={request._id}
                       hover
-                      component={Link}
-                      to={`/requests/${request._id}`}
                       sx={{
                         cursor: "pointer",
-                        textDecoration: "none",
-                        color: "inherit",
-                        "&:hover": {
-                          bgcolor: "rgba(15,23,42,0.92)",
-                          transform: "translateX(4px)",
-                        },
+                        "&:last-child td": { border: 0 },
                       }}
                     >
                       <TableCell>
-                        <Box>
-                          <Typography variant="subtitle2" fontWeight={500} noWrap>
-                            {request.subject}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {request.type} maintenance
-                          </Typography>
-                        </Box>
-                      </TableCell>
-                      <TableCell>
-                        <Box>
-                          <Typography variant="body2" fontWeight={500}>
-                            {request.equipment?.name || "Unassigned"}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {request.equipment?.location || "-"}
-                          </Typography>
-                        </Box>
+                        <Typography variant="body2" fontWeight={600}>
+                          {request.subject}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          ID: {request._id?.slice(-6)}
+                        </Typography>
                       </TableCell>
                       <TableCell>
                         <Typography variant="body2">
-                          {request.equipment?.department || "-"}
+                          {request.equipment?.name || "Unassigned"}
                         </Typography>
-                      </TableCell>
-                      <TableCell>{statusChip(request.status)}</TableCell>
-                      <TableCell>
-                        {request.priority && (
-                          <Chip
-                            label={request.priority}
-                            size="small"
-                            color="error"
-                            variant="outlined"
-                            sx={{ fontSize: 10, height: 22 }}
-                          />
+                        {request.equipment?.location && (
+                          <Typography variant="caption" color="text.secondary">
+                            {request.equipment.location}
+                          </Typography>
                         )}
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={request.type}
+                          size="small"
+                          variant="outlined"
+                          sx={{ borderRadius: 1 }}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={request.status}
+                          size="small"
+                          color={getStatusColor(request.status)}
+                          sx={{ borderRadius: 1 }}
+                        />
                       </TableCell>
                       <TableCell>
                         <Typography variant="body2">
                           {request.scheduledDate
                             ? new Date(request.scheduledDate).toLocaleDateString()
-                            : "No schedule"}
+                            : "Not scheduled"}
                         </Typography>
                       </TableCell>
-                      <TableCell>
+                      <TableCell align="right">
                         <Button
+                          component={Link}
+                          to={`/requests/${request._id}`}
                           size="small"
                           variant="outlined"
-                          sx={{ borderRadius: 2, fontSize: 11, minWidth: 80 }}
+                          startIcon={<Visibility />}
+                          sx={{
+                            borderRadius: 1.5,
+                            textTransform: "none",
+                            fontWeight: 600,
+                          }}
                         >
                           View
                         </Button>
                       </TableCell>
                     </TableRow>
                   ))}
+
                 {filteredRequests.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={7} align="center" sx={{ py: 8 }}>
-                      <Box sx={{ textAlign: "center", color: "text.secondary" }}>
-                        <Typography variant="h6" gutterBottom>
-                          No requests found
-                        </Typography>
-                        <Typography variant="body2">
-                          Create your first maintenance request or adjust your filters.
-                        </Typography>
-                      </Box>
+                    <TableCell colSpan={6} align="center" sx={{ py: 8 }}>
+                      <Typography variant="h6" color="text.secondary" gutterBottom>
+                        No requests found
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" mb={2}>
+                        {search
+                          ? "Try adjusting your search"
+                          : "Create your first maintenance request"}
+                      </Typography>
+                      {!search && (
+                        <Button
+                          component={Link}
+                          to="/requests/new"
+                          variant="contained"
+                          startIcon={<Add />}
+                          sx={{
+                            borderRadius: 1.5,
+                            textTransform: "none",
+                            fontWeight: 600,
+                          }}
+                        >
+                          New Request
+                        </Button>
+                      )}
                     </TableCell>
                   </TableRow>
                 )}
               </TableBody>
             </Table>
           </TableContainer>
+
           <TablePagination
             component="div"
             count={filteredRequests.length}
@@ -235,20 +250,15 @@ const EquipmentRequestsPage = () => {
               setRowsPerPage(parseInt(e.target.value));
               setPage(0);
             }}
-            rowsPerPageOptions={[10, 15, 25, 50]}
+            rowsPerPageOptions={[10, 25, 50]}
             sx={{
               borderTop: "1px solid",
               borderColor: "divider",
-              bgcolor: "rgba(2,6,23,0.95)",
-              "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows": {
-                color: "text.secondary",
-              },
             }}
           />
-        </Paper>
+        </Card>
       </Box>
-    </Fade>
-  );
-};
+    );
+  };
 
-export default EquipmentRequestsPage;
+  export default EquipmentRequestsPage;

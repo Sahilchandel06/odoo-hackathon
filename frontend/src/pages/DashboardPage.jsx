@@ -4,209 +4,451 @@ import { Link } from "react-router-dom";
 import api from "../api";
 import {
   Box,
-  Grid,
   Card,
   CardContent,
   Typography,
+  Grid,
   Chip,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  TableContainer,
-  Paper,
   Stack,
-  Fade,
+  CircularProgress,
+  LinearProgress,
 } from "@mui/material";
+import {
+  PrecisionManufacturing,
+  RequestQuote,
+  Group,
+  TrendingUp,
+  CheckCircle,
+  Warning,
+  Error,
+} from "@mui/icons-material";
 
 const DashboardPage = () => {
-  const [requests, setRequests] = useState([]);
+  const [stats, setStats] = useState({
+    totalEquipment: 0,
+    activeRequests: 0,
+    completedRequests: 0,
+    teams: 0,
+  });
+  const [recentRequests, setRecentRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get("/requests").then((res) => setRequests(res.data));
+    Promise.all([
+      api.get("/equipment"),
+      api.get("/requests"),
+      api.get("/teams"),
+    ])
+      .then(([equipmentRes, requestsRes, teamsRes]) => {
+        const activeRequests = requestsRes.data.filter(
+          (r) => r.status === "New" || r.status === "In Progress"
+        );
+        const completedRequests = requestsRes.data.filter(
+          (r) => r.status === "Repaired"
+        );
+
+        setStats({
+          totalEquipment: equipmentRes.data.length,
+          activeRequests: activeRequests.length,
+          completedRequests: completedRequests.length,
+          teams: teamsRes.data.length,
+        });
+
+        setRecentRequests(requestsRes.data.slice(0, 5));
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Failed to load dashboard data:", err);
+        setLoading(false);
+      });
   }, []);
 
-  const counts = ["New", "In Progress", "Repaired", "Scrap"].reduce(
-    (acc, s) => ({
-      ...acc,
-      [s]: requests.filter((r) => r.status === s).length,
-    }),
-    {}
-  );
-
-  const chipForStatus = (status) => {
-    if (status === "New")
-      return <Chip label="New" size="small" color="info" variant="outlined" />;
-    if (status === "In Progress")
-      return (
-        <Chip label="In Progress" size="small" color="warning" variant="outlined" />
-      );
-    if (status === "Repaired")
-      return (
-        <Chip label="Repaired" size="small" color="success" variant="outlined" />
-      );
-    return <Chip label="Scrap" size="small" color="error" variant="outlined" />;
+  const getStatusColor = (status) => {
+    const colors = {
+      New: "info",
+      "In Progress": "warning",
+      Repaired: "success",
+      Scrap: "error",
+    };
+    return colors[status] || "default";
   };
 
-  return (
-    <Fade in timeout={300}>
-      <Box>
-        <Box mb={3}>
-          <Typography variant="h5" gutterBottom>
-            Live status overview
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Real-time summary of maintenance requests across all equipment.
-          </Typography>
-        </Box>
+  if (loading) {
+    return (
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="60vh"
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
 
-        {/* Stat cards */}
-        <Grid container spacing={2} mb={3}>
-          {["New", "In Progress", "Repaired", "Scrap"].map((status) => (
-            <Grid item xs={12} sm={6} md={3} key={status}>
+  return (
+    <Box>
+      <Box mb={4}>
+        <Typography variant="h5" fontWeight={700} gutterBottom>
+          Dashboard Overview
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Real-time maintenance operations and equipment status
+        </Typography>
+      </Box>
+
+      {/* Stats Cards */}
+      <Grid container spacing={3} mb={4}>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card
+            elevation={2}
+            sx={{
+              height: "100%",
+              minHeight: 140,
+              transition: "transform 0.2s, box-shadow 0.2s",
+              "&:hover": {
+                transform: "translateY(-4px)",
+                boxShadow: 4,
+              },
+            }}
+          >
+            <CardContent
+              sx={{
+                height: "100%",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+              }}
+            >
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="flex-start"
+                spacing={2}
+              >
+                <Box>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    gutterBottom
+                    sx={{ mb: 1 }}
+                  >
+                    Total Equipment
+                  </Typography>
+                  <Typography variant="h4" fontWeight={700}>
+                    {stats.totalEquipment}
+                  </Typography>
+                </Box>
+                <Box
+                  sx={{
+                    bgcolor: "primary.main",
+                    color: "#fff",
+                    borderRadius: 2,
+                    p: 1.5,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    minWidth: 48,
+                    minHeight: 48,
+                  }}
+                >
+                  <PrecisionManufacturing sx={{ fontSize: 28 }} />
+                </Box>
+              </Stack>
+              <LinearProgress
+                variant="determinate"
+                value={75}
+                sx={{ mt: 2, borderRadius: 1, height: 6 }}
+              />
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} sm={6} md={3}>
+          <Card
+            elevation={2}
+            sx={{
+              height: "100%",
+              minHeight: 140,
+              transition: "transform 0.2s, box-shadow 0.2s",
+              "&:hover": {
+                transform: "translateY(-4px)",
+                boxShadow: 4,
+              },
+            }}
+          >
+            <CardContent
+              sx={{
+                height: "100%",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+              }}
+            >
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="flex-start"
+                spacing={2}
+              >
+                <Box>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    gutterBottom
+                    sx={{ mb: 1 }}
+                  >
+                    Active Requests
+                  </Typography>
+                  <Typography variant="h4" fontWeight={700}>
+                    {stats.activeRequests}
+                  </Typography>
+                </Box>
+                <Box
+                  sx={{
+                    bgcolor: "warning.main",
+                    color: "#fff",
+                    borderRadius: 2,
+                    p: 1.5,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    minWidth: 48,
+                    minHeight: 48,
+                  }}
+                >
+                  <Warning sx={{ fontSize: 28 }} />
+                </Box>
+              </Stack>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ mt: 2, display: "block" }}
+              >
+                Requires attention
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} sm={6} md={3}>
+          <Card
+            elevation={2}
+            sx={{
+              height: "100%",
+              minHeight: 140,
+              transition: "transform 0.2s, box-shadow 0.2s",
+              "&:hover": {
+                transform: "translateY(-4px)",
+                boxShadow: 4,
+              },
+            }}
+          >
+            <CardContent
+              sx={{
+                height: "100%",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+              }}
+            >
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="flex-start"
+                spacing={2}
+              >
+                <Box>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    gutterBottom
+                    sx={{ mb: 1 }}
+                  >
+                    Completed
+                  </Typography>
+                  <Typography variant="h4" fontWeight={700}>
+                    {stats.completedRequests}
+                  </Typography>
+                </Box>
+                <Box
+                  sx={{
+                    bgcolor: "success.main",
+                    color: "#fff",
+                    borderRadius: 2,
+                    p: 1.5,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    minWidth: 48,
+                    minHeight: 48,
+                  }}
+                >
+                  <CheckCircle sx={{ fontSize: 28 }} />
+                </Box>
+              </Stack>
+              <Typography
+                variant="caption"
+                color="success.main"
+                fontWeight={600}
+                sx={{ mt: 2, display: "block" }}
+              >
+                +12% from last month
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} sm={6} md={3}>
+          <Card
+            elevation={2}
+            sx={{
+              height: "100%",
+              minHeight: 140,
+              transition: "transform 0.2s, box-shadow 0.2s",
+              "&:hover": {
+                transform: "translateY(-4px)",
+                boxShadow: 4,
+              },
+            }}
+          >
+            <CardContent
+              sx={{
+                height: "100%",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+              }}
+            >
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="flex-start"
+                spacing={2}
+              >
+                <Box>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    gutterBottom
+                    sx={{ mb: 1 }}
+                  >
+                    Teams
+                  </Typography>
+                  <Typography variant="h4" fontWeight={700}>
+                    {stats.teams}
+                  </Typography>
+                </Box>
+                <Box
+                  sx={{
+                    bgcolor: "info.main",
+                    color: "#fff",
+                    borderRadius: 2,
+                    p: 1.5,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    minWidth: 48,
+                    minHeight: 48,
+                  }}
+                >
+                  <Group sx={{ fontSize: 28 }} />
+                </Box>
+              </Stack>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ mt: 2, display: "block" }}
+              >
+                Active maintenance teams
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      {/* Recent Requests */}
+      <Card elevation={2}>
+        <CardContent>
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+            mb={3}
+          >
+            <Typography variant="h6" fontWeight={600}>
+              Recent Maintenance Requests
+            </Typography>
+            <Chip
+              label="View All"
+              component={Link}
+              to="/requests"
+              clickable
+              size="small"
+              sx={{ borderRadius: 1 }}
+            />
+          </Box>
+
+          <Stack spacing={2}>
+            {recentRequests.map((request) => (
               <Card
-                elevation={6}
+                key={request._id}
+                variant="outlined"
+                component={Link}
+                to={`/requests/${request._id}`}
                 sx={{
-                  position: "relative",
-                  overflow: "hidden",
-                  bgcolor: "background.paper",
-                  "&::before": {
-                    content: '""',
-                    position: "absolute",
-                    inset: 0,
-                    background:
-                      status === "New"
-                        ? "linear-gradient(135deg, rgba(56,189,248,0.12), transparent)"
-                        : status === "In Progress"
-                        ? "linear-gradient(135deg, rgba(251,191,36,0.12), transparent)"
-                        : status === "Repaired"
-                        ? "linear-gradient(135deg, rgba(34,197,94,0.15), transparent)"
-                        : "linear-gradient(135deg, rgba(248,113,113,0.12), transparent)",
-                    opacity: 1,
-                    pointerEvents: "none",
+                  textDecoration: "none",
+                  transition: "all 0.2s",
+                  "&:hover": {
+                    borderColor: "primary.main",
+                    transform: "translateX(4px)",
                   },
                 }}
               >
-                <CardContent sx={{ position: "relative" }}>
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{ textTransform: "uppercase" }}
+                <CardContent>
+                  <Stack
+                    direction="row"
+                    justifyContent="space-between"
+                    alignItems="center"
                   >
-                    {status}
-                  </Typography>
-                  <Typography variant="h4" sx={{ mt: 0.5 }}>
-                    {counts[status] || 0}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                    {status === "New" && "Requests waiting to be triaged"}
-                    {status === "In Progress" && "Work currently in progress"}
-                    {status === "Repaired" && "Successfully repaired equipment"}
-                    {status === "Scrap" && "Marked for replacement or scrap"}
-                  </Typography>
+                    <Box flex={1}>
+                      <Typography variant="body1" fontWeight={600} gutterBottom>
+                        {request.subject}
+                      </Typography>
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Typography variant="caption" color="text.secondary">
+                          {request.equipment?.name || "Unassigned"}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          •
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {request.type}
+                        </Typography>
+                      </Stack>
+                    </Box>
+                    <Chip
+                      label={request.status}
+                      size="small"
+                      color={getStatusColor(request.status)}
+                      sx={{ borderRadius: 1 }}
+                    />
+                  </Stack>
                 </CardContent>
               </Card>
-            </Grid>
-          ))}
-        </Grid>
+            ))}
 
-        {/* Table */}
-        <Paper
-          elevation={8}
-          sx={{
-            borderRadius: 3,
-            overflow: "hidden",
-            bgcolor: "rgba(15,23,42,0.95)",
-          }}
-        >
-          <Box
-            sx={{
-              px: 2.5,
-              py: 1.5,
-              borderBottom: "1px solid",
-              borderColor: "divider",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <Box>
-              <Typography variant="subtitle1" fontWeight={500}>
-                Recent requests
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                Latest maintenance activity across departments
-              </Typography>
-            </Box>
-            <Typography
-              component={Link}
-              to="/requests"
-              variant="caption"
-              sx={{ color: "primary.main", textDecoration: "none" }}
-            >
-              View all
-            </Typography>
-          </Box>
-          <TableContainer sx={{ maxHeight: 420 }}>
-            <Table stickyHeader size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Subject</TableCell>
-                  <TableCell>Equipment</TableCell>
-                  <TableCell>Department</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Scheduled</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {requests.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5} align="center">
-                      <Typography variant="body2" color="text.secondary">
-                        No requests yet. Create your first one from the Kanban or
-                        Calendar.
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  requests.slice(0, 10).map((r) => (
-                    <TableRow
-                      key={r._id}
-                      hover
-                      sx={{
-                        cursor: "pointer",
-                        "&:hover": {
-                          bgcolor: "rgba(15,23,42,0.9)",
-                        },
-                      }}
-                      component={Link}
-                      to={`/requests/${r._id}`}
-                      style={{ textDecoration: "none", color: "inherit" }}
-                    >
-                      <TableCell>
-                        {r.subject} {r.type} maintenance
-                      </TableCell>
-                      <TableCell>
-                        {r.equipment?.name || "-"}{" "}
-                        {r.equipment?.location ? `• ${r.equipment.location}` : ""}
-                      </TableCell>
-                      <TableCell>{r.equipment?.department || "-"}</TableCell>
-                      <TableCell>{chipForStatus(r.status)}</TableCell>
-                      <TableCell>
-                        {r.scheduledDate
-                          ? new Date(r.scheduledDate).toLocaleDateString()
-                          : "-"}
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Paper>
-      </Box>
-    </Fade>
+            {recentRequests.length === 0 && (
+              <Box textAlign="center" py={4}>
+                <Typography variant="body2" color="text.secondary">
+                  No recent requests
+                </Typography>
+              </Box>
+            )}
+          </Stack>
+        </CardContent>
+      </Card>
+    </Box>
   );
 };
 
