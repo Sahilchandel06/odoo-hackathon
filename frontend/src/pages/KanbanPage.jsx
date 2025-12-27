@@ -39,7 +39,7 @@ const KanbanPage = () => {
       <div className="page-header">
         <h1 className="page-title">Maintenance Kanban</h1>
         <p className="page-subtitle">
-          Drag and drop requests between stages to control the full lifecycle.
+          Grouped by stage. Drag cards to move requests through their lifecycle.
         </p>
       </div>
 
@@ -64,59 +64,65 @@ const KanbanPage = () => {
 
 export default KanbanPage;
 
-/* ------- Column component ------- */
+/* ----- Column component ----- */
 
-const KanbanColumn = ({ stage, items, loading, onDrop, onDragStart }) => {
-  return (
-    <div
-      className="kanban-column card"
-      onDragOver={(e) => e.preventDefault()}
-      onDrop={(e) => onDrop(e, stage.key)}
-    >
-      <div className="kanban-column-header">
-        <div className="kanban-column-title">{stage.label}</div>
-        <div className="kanban-column-count">{items.length}</div>
-      </div>
-      <div className="kanban-column-body">
-        {loading && !items.length && (
-          <div className="kanban-column-empty">Loading...</div>
-        )}
-        {items.map((r) => (
-          <KanbanCard key={r._id} request={r} onDragStart={onDragStart} />
-        ))}
-        {!loading && !items.length && (
-          <div className="kanban-column-empty">
-            Drop requests here to set them as {stage.label}.
-          </div>
-        )}
-      </div>
+const KanbanColumn = ({ stage, items, loading, onDrop, onDragStart }) => (
+  <div
+    className="kanban-column card"
+    onDragOver={(e) => e.preventDefault()}
+    onDrop={(e) => onDrop(e, stage.key)}
+  >
+    <div className="kanban-column-header">
+      <div className="kanban-column-title">{stage.label}</div>
+      <div className="kanban-column-count">{items.length}</div>
     </div>
-  );
-};
+    <div className="kanban-column-body">
+      {loading && !items.length && (
+        <div className="kanban-column-empty">Loading...</div>
+      )}
+      {items.map((r) => (
+        <KanbanCard key={r._id} request={r} onDragStart={onDragStart} />
+      ))}
+      {!loading && !items.length && (
+        <div className="kanban-column-empty">
+          Drop requests here to set them as {stage.label}.
+        </div>
+      )}
+    </div>
+  </div>
+);
 
-/* ------- Card component ------- */
+/* ----- Card component ----- */
 
 const KanbanCard = ({ request, onDragStart }) => {
   const overdue = request.isOverdue && request.status !== "Repaired";
 
+  const initials = request.assignedTo?.name
+    ? request.assignedTo.name
+        .split(" ")
+        .map((p) => p[0])
+        .join("")
+        .toUpperCase()
+    : "?";
+
   return (
     <div
-      className={
-        "kanban-card" + (overdue ? " kanban-card-overdue" : "")
-      }
+      className={"kanban-card" + (overdue ? " kanban-card-overdue" : "")}
       draggable
       onDragStart={(e) => onDragStart(e, request._id)}
     >
       {overdue && <div className="kanban-card-stripe" />}
 
-      <div className="kanban-card-main">
+      <div className="kanban-card-main-with-avatar">
         <div>
           <div className="kanban-card-title">{request.subject}</div>
           <div className="kanban-card-sub">
             {request.equipment?.name || "No equipment"}
           </div>
         </div>
-        <span className="kanban-pill">{request.type}</span>
+        <div className="avatar">
+          <span className="avatar-initials">{initials}</span>
+        </div>
       </div>
 
       <div className="kanban-card-meta">
@@ -131,7 +137,10 @@ const KanbanCard = ({ request, onDragStart }) => {
             </span>
           )}
         </div>
-        {overdue && <span className="kanban-pill-danger">Overdue</span>}
+        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          <span className="kanban-pill">{request.type}</span>
+          {overdue && <span className="kanban-pill-danger">Overdue</span>}
+        </div>
       </div>
     </div>
   );

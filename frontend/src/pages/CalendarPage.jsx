@@ -39,9 +39,9 @@ const CalendarPage = () => {
   return (
     <div>
       <div className="page-header">
-        <h1 className="page-title">Preventive Calendar</h1>
+        <h1 className="page-title">Preventive calendar</h1>
         <p className="page-subtitle">
-          All scheduled preventive maintenance jobs by date.
+          Displays all preventive maintenance requests. Click a date to schedule a new job.
         </p>
       </div>
 
@@ -50,7 +50,7 @@ const CalendarPage = () => {
           <div>
             <div className="card-header-title">Calendar</div>
             <div className="card-header-subtitle">
-              Click a date to create a new preventive request.
+              Preventive tasks by scheduled date.
             </div>
           </div>
         </div>

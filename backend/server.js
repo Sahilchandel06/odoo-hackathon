@@ -18,6 +18,8 @@ app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/teams", require("./routes/teamRoutes"));
 app.use("/api/equipment", require("./routes/equipmentRoutes"));
 app.use("/api/requests", require("./routes/requestRoutes"));
+app.use("/api/users", require("./routes/userRoutes"));
+
 
 app.listen(process.env.PORT, () =>
   console.log(`Server running on port ${process.env.PORT}`)

@@ -3,14 +3,20 @@ import api from "../api";
 
 const TeamsPage = () => {
   const [teams, setTeams] = useState([]);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [name, setName] = useState("");
+  const [selectedMembers, setSelectedMembers] = useState([]);
 
   const load = async () => {
     setLoading(true);
-    const res = await api.get("/teams");
-    setTeams(res.data);
+    const [teamsRes, usersRes] = await Promise.all([
+      api.get("/teams"),
+      api.get("/users"),
+    ]);
+    setTeams(teamsRes.data);
+    setUsers(usersRes.data);
     setLoading(false);
   };
 
@@ -18,12 +24,19 @@ const TeamsPage = () => {
     load();
   }, []);
 
+  const handleToggleMember = (id) => {
+    setSelectedMembers((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
   const handleCreate = async (e) => {
     e.preventDefault();
     if (!name.trim()) return;
     setCreating(true);
-    await api.post("/teams", { name });
+    await api.post("/teams", { name, members: selectedMembers });
     setName("");
+    setSelectedMembers([]);
     setCreating(false);
     load();
   };
@@ -33,7 +46,7 @@ const TeamsPage = () => {
       <div className="page-header">
         <h1 className="page-title">Maintenance teams</h1>
         <p className="page-subtitle">
-          Define specialized teams and see which technicians belong to each.
+          Define specialized teams and link technicians to each team.
         </p>
       </div>
 
@@ -43,16 +56,13 @@ const TeamsPage = () => {
           <div>
             <div className="card-header-title">Add team</div>
             <div className="card-header-subtitle">
-              Create a new maintenance team (Mechanics, Electricians, IT...).
+              Set a team name and choose its members.
             </div>
           </div>
         </div>
         <div className="card-body">
-          <form
-            onSubmit={handleCreate}
-            style={{ display: "flex", gap: 8, alignItems: "flex-end" }}
-          >
-            <div style={{ flex: 1 }}>
+          <form onSubmit={handleCreate}>
+            <div className="form-group">
               <label className="form-label">Team name</label>
               <input
                 className="input"
@@ -61,13 +71,73 @@ const TeamsPage = () => {
                 onChange={(e) => setName(e.target.value)}
               />
             </div>
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={creating}
+
+            <div className="form-group">
+              <label className="form-label">Team members</label>
+              <div
+                style={{
+                  maxHeight: 180,
+                  overflowY: "auto",
+                  padding: 8,
+                  borderRadius: 8,
+                  border: "1px solid var(--border)",
+                  backgroundColor: "#020617",
+                  fontSize: 12,
+                }}
+              >
+                {users.map((u) => (
+                  <label
+                    key={u._id}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                      marginBottom: 4,
+                      cursor: "pointer",
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedMembers.includes(u._id)}
+                      onChange={() => handleToggleMember(u._id)}
+                    />
+                    <span>
+                      {u.name}{" "}
+                      <span
+                        style={{
+                          color: "var(--text-muted)",
+                          fontSize: 11,
+                        }}
+                      >
+                        ({u.role})
+                      </span>
+                    </span>
+                  </label>
+                ))}
+                {!users.length && (
+                  <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                    No users yet. Create accounts first.
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: 8,
+                marginTop: 8,
+              }}
             >
-              {creating ? "Adding..." : "Add"}
-            </button>
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={creating}
+              >
+                {creating ? "Adding..." : "Add team"}
+              </button>
+            </div>
           </form>
         </div>
       </div>
@@ -78,7 +148,7 @@ const TeamsPage = () => {
           <div>
             <div className="card-header-title">Teams</div>
             <div className="card-header-subtitle">
-              List of all maintenance teams and their members.
+              All maintenance teams and their member technicians.
             </div>
           </div>
         </div>

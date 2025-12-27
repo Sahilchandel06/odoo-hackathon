@@ -5,6 +5,7 @@ import api from "../api";
 const EquipmentFormPage = () => {
   const navigate = useNavigate();
   const [teams, setTeams] = useState([]);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
@@ -15,13 +16,19 @@ const EquipmentFormPage = () => {
     purchaseDate: "",
     warrantyExpiry: "",
     maintenanceTeam: "",
+    assignedEmployee: "",
+    defaultTechnician: "",
   });
 
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      const res = await api.get("/teams");
-      setTeams(res.data);
+      const [teamRes, userRes] = await Promise.all([
+        api.get("/teams"),
+        api.get("/users"),
+      ]);
+      setTeams(teamRes.data);
+      setUsers(userRes.data);
       setLoading(false);
     };
     load();
@@ -40,28 +47,31 @@ const EquipmentFormPage = () => {
     navigate("/equipment");
   };
 
+  const technicians = users.filter((u) => u.role === "Technician");
+
   return (
     <div>
       <div className="page-header">
         <h1 className="page-title">Add equipment</h1>
         <p className="page-subtitle">
-          Register a new machine, vehicle or IT asset and link it to a team.
+          Register an asset with ownership, location and default maintenance
+          responsibility.
         </p>
       </div>
 
-      <div className="card" style={{ maxWidth: 640 }}>
+      <div className="card" style={{ maxWidth: 720 }}>
         <div className="card-header">
           <div>
             <div className="card-header-title">Equipment details</div>
             <div className="card-header-subtitle">
-              Ownership, location and maintenance responsibility.
+              Name, serial, department and physical location.
             </div>
           </div>
         </div>
         <div className="card-body">
           {loading && (
             <div style={{ fontSize: 12, color: "var(--text-soft)" }}>
-              Loading teams...
+              Loading teams and users...
             </div>
           )}
           {!loading && (
@@ -92,7 +102,7 @@ const EquipmentFormPage = () => {
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))",
+                  gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))",
                   gap: 12,
                 }}
               >
@@ -103,10 +113,9 @@ const EquipmentFormPage = () => {
                     name="department"
                     value={form.department}
                     onChange={handleChange}
-                    placeholder="Production, IT, Logistics..."
+                    placeholder="Production, IT, Finance..."
                   />
                 </div>
-
                 <div className="form-group">
                   <label className="form-label">Location</label>
                   <input
@@ -122,7 +131,7 @@ const EquipmentFormPage = () => {
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))",
+                  gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))",
                   gap: 12,
                 }}
               >
@@ -136,7 +145,6 @@ const EquipmentFormPage = () => {
                     onChange={handleChange}
                   />
                 </div>
-
                 <div className="form-group">
                   <label className="form-label">Warranty expiry</label>
                   <input
@@ -149,22 +157,74 @@ const EquipmentFormPage = () => {
                 </div>
               </div>
 
+              {/* Ownership */}
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))",
+                  gap: 12,
+                }}
+              >
+                <div className="form-group">
+                  <label className="form-label">Owning employee</label>
+                  <select
+                    className="select"
+                    name="assignedEmployee"
+                    value={form.assignedEmployee}
+                    onChange={handleChange}
+                  >
+                    <option value="">Not linked</option>
+                    {users.map((u) => (
+                      <option key={u._id} value={u._id}>
+                        {u.name} ({u.role})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Maintenance team</label>
+                  <select
+                    className="select"
+                    name="maintenanceTeam"
+                    value={form.maintenanceTeam}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Select team</option>
+                    {teams.map((t) => (
+                      <option key={t._id} value={t._id}>
+                        {t.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Default technician */}
               <div className="form-group">
-                <label className="form-label">Maintenance team</label>
+                <label className="form-label">
+                  Default technician for this equipment
+                </label>
                 <select
                   className="select"
-                  name="maintenanceTeam"
-                  value={form.maintenanceTeam}
+                  name="defaultTechnician"
+                  value={form.defaultTechnician}
                   onChange={handleChange}
-                  required
                 >
-                  <option value="">Select team</option>
-                  {teams.map((t) => (
-                    <option key={t._id} value={t._id}>
-                      {t.name}
+                  <option value="">None</option>
+                  {technicians.map((u) => (
+                    <option key={u._id} value={u._id}>
+                      {u.name}
                     </option>
                   ))}
                 </select>
+                <div
+                  style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}
+                >
+                  This technician will be suggested when creating requests for
+                  this equipment.
+                </div>
               </div>
 
               <div
@@ -182,7 +242,11 @@ const EquipmentFormPage = () => {
                 >
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary" disabled={saving}>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={saving}
+                >
                   {saving ? "Saving..." : "Save equipment"}
                 </button>
               </div>

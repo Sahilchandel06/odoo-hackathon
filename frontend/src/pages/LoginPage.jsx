@@ -23,7 +23,7 @@ const LoginPage = () => {
     <div className="auth-wrapper">
       <div className="auth-card">
         <div style={{ textAlign: "center", marginBottom: 14 }}>
-          <div className="app-logo">GG</div>
+          {/* <div className="app-logo">GG</div> */}
           <h1
             style={{
               marginTop: 10,

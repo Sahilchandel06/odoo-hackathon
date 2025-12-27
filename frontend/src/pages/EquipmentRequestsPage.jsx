@@ -42,7 +42,7 @@ const EquipmentRequestsPage = () => {
       <div className="page-header">
         <h1 className="page-title">Equipment maintenance</h1>
         <p className="page-subtitle">
-          All maintenance requests linked to this specific equipment.
+          All maintenance requests linked to this specific machine.
         </p>
       </div>
 
@@ -71,12 +71,39 @@ const EquipmentRequestsPage = () => {
                 SN: {equipment.serialNumber}
               </div>
             )}
+            {equipment.isScrapped && (
+              <div
+                style={{
+                  marginTop: 6,
+                  fontSize: 11,
+                  color: "#fecaca",
+                  backgroundColor: "var(--danger-soft)",
+                  border: "1px solid rgba(248,113,113,0.5)",
+                  borderRadius: 8,
+                  padding: "4px 8px",
+                  maxWidth: 320,
+                }}
+              >
+                This equipment has been marked as scrapped and is no longer
+                usable.
+              </div>
+            )}
           </div>
+
+          {/* Smart badge */}
           <div style={{ textAlign: "right" }}>
             <div style={{ fontSize: 11, color: "var(--text-soft)" }}>
               Open requests
             </div>
             <div style={{ fontSize: 24, fontWeight: 600 }}>{openCount}</div>
+            <div style={{ marginTop: 8 }}>
+              <button
+                className="btn btn-outline"
+                onClick={() => navigate("/requests/new")}
+              >
+                + New request
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -86,15 +113,9 @@ const EquipmentRequestsPage = () => {
           <div>
             <div className="card-header-title">Maintenance requests</div>
             <div className="card-header-subtitle">
-              Corrective breakdowns and preventive checkups for this asset.
+              Corrective and preventive jobs for this equipment only.
             </div>
           </div>
-          <button
-            className="btn btn-primary"
-            onClick={() => navigate("/requests/new")}
-          >
-            + New request
-          </button>
         </div>
         <div className="card-body table-wrapper">
           <table className="table">

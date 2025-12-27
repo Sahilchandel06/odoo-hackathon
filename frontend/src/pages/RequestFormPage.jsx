@@ -64,7 +64,7 @@ const RequestFormPage = () => {
           <div>
             <div className="card-header-title">Request details</div>
             <div className="card-header-subtitle">
-              Select equipment and define the schedule for the job.
+              Request type, subject, equipment and schedule.
             </div>
           </div>
         </div>
@@ -76,6 +76,7 @@ const RequestFormPage = () => {
           )}
           {!loading && (
             <form onSubmit={handleSubmit}>
+              {/* Subject */}
               <div className="form-group">
                 <label className="form-label">Subject</label>
                 <input
@@ -83,15 +84,16 @@ const RequestFormPage = () => {
                   name="subject"
                   value={form.subject}
                   onChange={handleChange}
-                  placeholder="Leaking oil in pump, routine filter check..."
+                  placeholder='What is wrong? e.g. "Leaking oil"'
                   required
                 />
               </div>
 
+              {/* Type + equipment */}
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))",
+                  gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))",
                   gap: 12,
                 }}
               >
@@ -107,6 +109,7 @@ const RequestFormPage = () => {
                     <option value="Preventive">Preventive (Routine)</option>
                   </select>
                 </div>
+
                 <div className="form-group">
                   <label className="form-label">Equipment</label>
                   <select
@@ -126,10 +129,12 @@ const RequestFormPage = () => {
                 </div>
               </div>
 
+              {/* Scheduled date */}
               <div className="form-group" style={{ marginTop: 8 }}>
                 <label className="form-label">
-                  Scheduled date{" "}
+                  Scheduled date
                   <span style={{ color: "var(--text-muted)" }}>
+                    {" "}
                     (for preventive jobs)
                   </span>
                 </label>
@@ -142,6 +147,7 @@ const RequestFormPage = () => {
                 />
               </div>
 
+              {/* Actions */}
               <div
                 style={{
                   display: "flex",

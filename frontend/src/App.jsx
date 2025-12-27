@@ -19,6 +19,7 @@ import EquipmentRequestsPage from "./pages/EquipmentRequestsPage";
 import TeamsPage from "./pages/TeamsPage";
 import RequestFormPage from "./pages/RequestFormPage";
 import RequestDetailPage from "./pages/RequestDetailPage";
+import ReportsPage from "./pages/ReportsPage";
 
 const SidebarLink = ({ to, children }) => (
   <NavLink
@@ -51,6 +52,7 @@ const Layout = ({ children }) => {
           <SidebarLink to="/equipment">Equipment</SidebarLink>
           <SidebarLink to="/teams">Teams</SidebarLink>
           <SidebarLink to="/requests/new">Create Request</SidebarLink>
+          <SidebarLink to="/reports">Reports</SidebarLink>
         </nav>
         <div className="app-sidebar-footer">
           <span>{user?.name}</span>
@@ -163,6 +165,16 @@ const AppRoutes = () => (
         <ProtectedRoute>
           <Layout>
             <RequestDetailPage />
+          </Layout>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/reports"
+      element={
+        <ProtectedRoute>
+          <Layout>
+            <ReportsPage />
           </Layout>
         </ProtectedRoute>
       }

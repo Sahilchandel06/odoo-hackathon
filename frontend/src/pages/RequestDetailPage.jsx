@@ -7,6 +7,7 @@ const STATUSES = ["New", "In Progress", "Repaired", "Scrap"];
 const RequestDetailPage = () => {
   const { id } = useParams();
   const [request, setRequest] = useState(null);
+  const [teamMembers, setTeamMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [savingStatus, setSavingStatus] = useState(false);
   const [duration, setDuration] = useState("");
@@ -17,6 +18,16 @@ const RequestDetailPage = () => {
     const found = res.data.find((r) => r._id === id) || null;
     setRequest(found);
     setDuration(found?.duration || "");
+
+    if (found?.maintenanceTeam?._id) {
+      const mRes = await api.get(
+        `/teams/${found.maintenanceTeam._id}/members`
+      );
+      setTeamMembers(mRes.data);
+    } else {
+      setTeamMembers([]);
+    }
+
     setLoading(false);
   };
 
@@ -32,19 +43,31 @@ const RequestDetailPage = () => {
     load();
   };
 
+  const updateAssignedTo = async (assignedTo) => {
+    if (!request) return;
+    await api.patch(`/requests/${id}`, {
+      assignedTo: assignedTo || null,
+      duration,
+      status: request.status,
+    });
+    load();
+  };
+
   if (loading || !request) {
     return <div style={{ fontSize: 12 }}>Loading request...</div>;
   }
 
   const overdue =
-    request.isOverdue && request.status !== "Repaired" && request.status !== "Scrap";
+    request.isOverdue &&
+    request.status !== "Repaired" &&
+    request.status !== "Scrap";
 
   return (
     <div>
       <div className="page-header">
         <h1 className="page-title">Request detail</h1>
         <p className="page-subtitle">
-          Manage the lifecycle, duration and status of this maintenance job.
+          Manage lifecycle, duration and assigned technician.
         </p>
       </div>
 
@@ -57,13 +80,17 @@ const RequestDetailPage = () => {
             </div>
           </div>
           <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: 11, color: "var(--text-soft)" }}>Status</div>
-            <div style={{ fontSize: 12, fontWeight: 500 }}>{request.status}</div>
+            <div style={{ fontSize: 11, color: "var(--text-soft)" }}>
+              Status
+            </div>
+            <div style={{ fontSize: 12, fontWeight: 500 }}>
+              {request.status}
+            </div>
           </div>
         </div>
 
         <div className="card-body">
-          {/* Top info grid */}
+          {/* Info grid */}
           <div
             style={{
               display: "grid",
@@ -94,9 +121,26 @@ const RequestDetailPage = () => {
             />
           </div>
 
+          {/* Assigned technician (only team members) */}
+          <div className="form-group" style={{ maxWidth: 260 }}>
+            <label className="form-label">Assigned technician</label>
+            <select
+              className="select"
+              value={request.assignedTo?._id || ""}
+              onChange={(e) => updateAssignedTo(e.target.value)}
+            >
+              <option value="">Unassigned</option>
+              {teamMembers.map((u) => (
+                <option key={u._id} value={u._id}>
+                  {u.name} ({u.role})
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* Duration */}
           <div className="form-group" style={{ maxWidth: 220 }}>
-            <label className="form-label">Hours spent (for repaired jobs)</label>
+            <label className="form-label">Hours spent (duration)</label>
             <input
               type="number"
               min="0"
