@@ -1,125 +1,148 @@
+// EquipmentListPage.jsx
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import api from "../api";
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TablePagination,
+  Chip,
+  Paper,
+  Fade,
+  CircularProgress,
+} from "@mui/material";
 
 const EquipmentListPage = () => {
   const [equipment, setEquipment] = useState([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      const res = await api.get("/equipment");
+    api.get("/equipment").then((res) => {
       setEquipment(res.data);
       setLoading(false);
-    };
-    load();
+    });
   }, []);
 
+  const statusChip = (status) => (
+    <Chip
+      label={status}
+      size="small"
+      color={status === "Active" ? "success" : "error"}
+      variant="outlined"
+    />
+  );
+
+  if (loading) {
+    return (
+      <Fade in timeout={300}>
+        <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+          <CircularProgress size={32} />
+        </Box>
+      </Fade>
+    );
+  }
+
   return (
-    <div>
-      <div className="page-header">
-        <h1 className="page-title">Equipment</h1>
-        <p className="page-subtitle">
-          Central registry of all machines, vehicles and IT assets.
-        </p>
-      </div>
+    <Fade in timeout={300}>
+      <Box>
+        <Box mb={3}>
+          <Typography variant="h5" gutterBottom>
+            Equipment inventory
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            All registered equipment across departments and locations.
+          </Typography>
+        </Box>
 
-      <div style={{ marginBottom: 14 }}>
-        <button
-          className="btn btn-primary"
-          onClick={() => navigate("/equipment/new")}
+        <Paper
+          elevation={8}
+          sx={{
+            borderRadius: 3,
+            overflow: "hidden",
+            bgcolor: "rgba(15,23,42,0.95)",
+          }}
         >
-          + Add equipment
-        </button>
-      </div>
-
-      <div className="card">
-        <div className="card-header">
-          <div>
-            <div className="card-header-title">Equipment list</div>
-            <div className="card-header-subtitle">
-              Track ownership, location and maintenance status.
-            </div>
-          </div>
-        </div>
-        <div className="card-body table-wrapper">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Equipment</th>
-                <th>Department</th>
-                <th>Location</th>
-                <th>Team</th>
-                <th>Status</th>
-                <th>Maintenance</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading && (
-                <tr>
-                  <td colSpan={6} style={{ padding: 20 }}>
-                    Loading equipment...
-                  </td>
-                </tr>
-              )}
-              {!loading && equipment.length === 0 && (
-                <tr>
-                  <td colSpan={6} style={{ padding: 20 }}>
-                    No equipment yet. Add your first machine or asset.
-                  </td>
-                </tr>
-              )}
-              {!loading &&
-                equipment.map((e) => (
-                  <tr key={e._id}>
-                    <td>
-                      <div style={{ fontSize: 13, fontWeight: 500 }}>
-                        {e.name}
-                      </div>
-                      {e.serialNumber && (
-                        <div
-                          style={{
-                            fontSize: 11,
-                            color: "var(--text-muted)",
-                          }}
+          <TableContainer sx={{ maxHeight: 600 }}>
+            <Table stickyHeader size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Name</TableCell>
+                  <TableCell>Type</TableCell>
+                  <TableCell>Location</TableCell>
+                  <TableCell>Department</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {equipment
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .map((eq) => (
+                    <TableRow
+                      key={eq._id}
+                      hover
+                      sx={{
+                        cursor: "pointer",
+                        "&:hover": { bgcolor: "rgba(15,23,42,0.9)" },
+                      }}
+                    >
+                      <TableCell>
+                        <Box>
+                          <Typography variant="subtitle2" fontWeight={500}>
+                            {eq.name}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            ID: {eq._id.slice(-6)}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell>{eq.type}</TableCell>
+                      <TableCell>{eq.location}</TableCell>
+                      <TableCell>{eq.department}</TableCell>
+                      <TableCell>{statusChip(eq.status)}</TableCell>
+                      <TableCell>
+                        <Button
+                          component={Link}
+                          to={`/equipment/${eq._id}`}
+                          size="small"
+                          variant="outlined"
+                          sx={{ borderRadius: 2, fontSize: 12 }}
                         >
-                          SN: {e.serialNumber}
-                        </div>
-                      )}
-                    </td>
-                    <td>{e.department || "-"}</td>
-                    <td>{e.location || "-"}</td>
-                    <td>{e.maintenanceTeam?.name || "-"}</td>
-                    <td>
-                      {e.isScrapped ? (
-                        <span className="badge badge-status-scrap">
-                          Scrapped
-                        </span>
-                      ) : (
-                        <span className="badge badge-status-repaired">
-                          Active
-                        </span>
-                      )}
-                    </td>
-                    <td>
-                      <button
-                        className="btn btn-outline"
-                        onClick={() =>
-                          navigate(`/equipment/${e._id}/requests`)
-                        }
-                      >
-                        Maintenance
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+                          View
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <TablePagination
+            component="div"
+            count={equipment.length}
+            page={page}
+            onPageChange={(e, newPage) => setPage(newPage)}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={(e) => setRowsPerPage(parseInt(e.target.value))}
+            rowsPerPageOptions={[10, 25, 50]}
+            sx={{
+              borderTop: "1px solid",
+              borderColor: "divider",
+              bgcolor: "rgba(2,6,23,0.8)",
+            }}
+          />
+        </Paper>
+      </Box>
+    </Fade>
   );
 };
 

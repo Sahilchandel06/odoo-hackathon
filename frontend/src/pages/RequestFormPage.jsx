@@ -1,175 +1,282 @@
-import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+// RequestFormPage.jsx
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../api";
+import {
+  Box,
+  Card,
+  CardContent,
+  TextField,
+  MenuItem,
+  Button,
+  Typography,
+  Fade,
+  Grid,
+  CircularProgress,
+  Alert,
+  FormControlLabel,
+  Checkbox,
+} from "@mui/material";
 
 const RequestFormPage = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const search = new URLSearchParams(location.search);
-
-  const [equipment, setEquipment] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-
-  const [form, setForm] = useState({
+  const [formData, setFormData] = useState({
     subject: "",
-    type: "Corrective",
-    equipment: "",
+    type: "",
+    equipmentId: "",
+    description: "",
+    priority: "Medium",
     scheduledDate: "",
+    isUrgent: false,
   });
-
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      const res = await api.get("/equipment");
-      setEquipment(res.data);
-
-      const qsType = search.get("type");
-      const qsDate = search.get("date");
-      setForm((prev) => ({
-        ...prev,
-        type: qsType || prev.type,
-        scheduledDate: qsDate || prev.scheduledDate,
-      }));
-
-      setLoading(false);
-    };
-    load();
-  }, [location.search]);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSaving(true);
-    await api.post("/requests", form);
-    setSaving(false);
-    navigate("/kanban");
+    setLoading(true);
+    setError("");
+    
+    try {
+      await api.post("/requests", formData);
+      navigate("/requests");
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to create request");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
   };
 
   return (
-    <div>
-      <div className="page-header">
-        <h1 className="page-title">New maintenance request</h1>
-        <p className="page-subtitle">
-          Log a corrective breakdown or schedule a preventive checkup.
-        </p>
-      </div>
+    <Fade in timeout={400}>
+      <Box sx={{ maxWidth: 800, mx: "auto" }}>
+        <Box mb={3}>
+          <Typography variant="h5" fontWeight={700} gutterBottom>
+            New Maintenance Request
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Fill out details for equipment maintenance or repair
+          </Typography>
+        </Box>
 
-      <div className="card" style={{ maxWidth: 640 }}>
-        <div className="card-header">
-          <div>
-            <div className="card-header-title">Request details</div>
-            <div className="card-header-subtitle">
-              Select equipment and define the schedule for the job.
-            </div>
-          </div>
-        </div>
-        <div className="card-body">
-          {loading && (
-            <div style={{ fontSize: 12, color: "var(--text-soft)" }}>
-              Loading equipment...
-            </div>
-          )}
-          {!loading && (
-            <form onSubmit={handleSubmit}>
-              <div className="form-group">
-                <label className="form-label">Subject</label>
-                <input
-                  className="input"
-                  name="subject"
-                  value={form.subject}
-                  onChange={handleChange}
-                  placeholder="Leaking oil in pump, routine filter check..."
-                  required
-                />
-              </div>
+        {error && (
+          <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
+            {error}
+          </Alert>
+        )}
 
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))",
-                  gap: 12,
-                }}
-              >
-                <div className="form-group">
-                  <label className="form-label">Request type</label>
-                  <select
-                    className="select"
-                    name="type"
-                    value={form.type}
-                    onChange={handleChange}
-                  >
-                    <option value="Corrective">Corrective (Breakdown)</option>
-                    <option value="Preventive">Preventive (Routine)</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Equipment</label>
-                  <select
-                    className="select"
-                    name="equipment"
-                    value={form.equipment}
+        <Card elevation={2}>
+          <CardContent sx={{ p: 3 }}>
+            <Box component="form" onSubmit={handleSubmit}>
+              <Grid container spacing={3}>
+                {/* Subject */}
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Subject"
+                    name="subject"
+                    value={formData.subject}
                     onChange={handleChange}
                     required
+                    placeholder="Brief description of the issue"
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: 1.5,
+                        "& input": {
+                          color: "text.primary",
+                        },
+                      },
+                    }}
+                  />
+                </Grid>
+
+                {/* Equipment */}
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Equipment ID"
+                    name="equipmentId"
+                    value={formData.equipmentId}
+                    onChange={handleChange}
+                    placeholder="e.g., EQ-001"
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: 1.5,
+                        "& input": {
+                          color: "text.primary",
+                        },
+                      },
+                    }}
+                  />
+                </Grid>
+
+                {/* Request Type */}
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Request Type"
+                    name="type"
+                    select
+                    value={formData.type}
+                    onChange={handleChange}
+                    required
+                    sx={{
+                      minWidth: 150,
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: 1.5,
+                      },
+                    }}
                   >
-                    <option value="">Select equipment</option>
-                    {equipment.map((e) => (
-                      <option key={e._id} value={e._id}>
-                        {e.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+                    <MenuItem value="Corrective">Corrective</MenuItem>
+                    <MenuItem value="Preventive">Preventive</MenuItem>
+                  </TextField>
+                </Grid>
 
-              <div className="form-group" style={{ marginTop: 8 }}>
-                <label className="form-label">
-                  Scheduled date{" "}
-                  <span style={{ color: "var(--text-muted)" }}>
-                    (for preventive jobs)
-                  </span>
-                </label>
-                <input
-                  type="date"
-                  className="input"
-                  name="scheduledDate"
-                  value={form.scheduledDate}
-                  onChange={handleChange}
-                />
-              </div>
+                {/* Priority */}
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Priority"
+                    name="priority"
+                    select
+                    value={formData.priority}
+                    onChange={handleChange}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: 1.5,
+                      },
+                    }}
+                  >
+                    <MenuItem value="Low">Low</MenuItem>
+                    <MenuItem value="Medium">Medium</MenuItem>
+                    <MenuItem value="High">High</MenuItem>
+                    <MenuItem value="Critical">Critical</MenuItem>
+                  </TextField>
+                </Grid>
 
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "flex-end",
-                  gap: 8,
-                  marginTop: 12,
-                }}
-              >
-                <button
-                  type="button"
-                  className="btn btn-outline"
-                  onClick={() => navigate(-1)}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="btn btn-primary"
-                  disabled={saving}
-                >
-                  {saving ? "Creating..." : "Create request"}
-                </button>
-              </div>
-            </form>
-          )}
-        </div>
-      </div>
-    </div>
+                {/* Scheduled Date */}
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Scheduled Date"
+                    name="scheduledDate"
+                    type="date"
+                    value={formData.scheduledDate}
+                    onChange={handleChange}
+                    InputLabelProps={{ shrink: true }}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: 1.5,
+                        "& input": {
+                          color: "text.primary",
+                        },
+                      },
+                    }}
+                  />
+                </Grid>
+
+                {/* Urgent Checkbox */}
+                <Grid item xs={12}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={formData.isUrgent}
+                        onChange={handleChange}
+                        name="isUrgent"
+                        sx={{ 
+                          color: "warning.main", 
+                          "&.Mui-checked": { color: "warning.main" } 
+                        }}
+                      />
+                    }
+                    label={
+                      <Box>
+                        <Typography variant="body2" fontWeight={600}>
+                          Mark as Urgent
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          Requires immediate attention
+                        </Typography>
+                      </Box>
+                    }
+                  />
+                </Grid>
+
+                {/* Description */}
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Description"
+                    name="description"
+                    multiline
+                    rows={4}
+                    value={formData.description}
+                    onChange={handleChange}
+                    placeholder="Provide detailed information about the maintenance request..."
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: 1.5,
+                        "& textarea": {
+                          color: "text.primary",
+                        },
+                      },
+                    }}
+                  />
+                </Grid>
+              </Grid>
+            </Box>
+          </CardContent>
+        </Card>
+
+        {/* Submit Button - Outside Card */}
+        <Box sx={{ mt: 3, display: "flex", gap: 2 }}>
+          <Button
+            variant="outlined"
+            size="large"
+            onClick={() => navigate("/requests")}
+            sx={{
+              flex: 1,
+              py: 1.5,
+              borderRadius: 1.5,
+              fontWeight: 600,
+              textTransform: "none",
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            size="large"
+            disabled={loading}
+            onClick={handleSubmit}
+            sx={{
+              flex: 2,
+              py: 1.5,
+              borderRadius: 1.5,
+              fontWeight: 600,
+              textTransform: "none",
+            }}
+          >
+            {loading ? (
+              <>
+                <CircularProgress size={20} color="inherit" sx={{ mr: 1 }} />
+                Creating...
+              </>
+            ) : (
+              "Create Request"
+            )}
+          </Button>
+        </Box>
+      </Box>
+    </Fade>
   );
 };
 

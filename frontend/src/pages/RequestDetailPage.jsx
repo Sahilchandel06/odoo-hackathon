@@ -37,120 +37,50 @@ const RequestDetailPage = () => {
   }
 
   const overdue =
-    request.isOverdue && request.status !== "Repaired" && request.status !== "Scrap";
+    request.isOverdue &&
+    request.status !== "Repaired" &&
+    request.status !== "Scrap";
 
   return (
-    <div>
-      <div className="page-header">
-        <h1 className="page-title">Request detail</h1>
-        <p className="page-subtitle">
-          Manage the lifecycle, duration and status of this maintenance job.
-        </p>
-      </div>
+    <Box>
+      <Box mb={4}>
+        <Typography variant="h5">Request #REQ-123</Typography>
+        <Stack direction="row" spacing={1} mt={0.5}>
+          <Chip label="In Progress" color="warning" />
+          <Chip label="High Priority" color="error" />
+        </Stack>
+      </Box>
 
-      <div className="card" style={{ maxWidth: 720 }}>
-        <div className="card-header">
-          <div>
-            <div className="card-header-title">{request.subject}</div>
-            <div className="card-header-subtitle">
-              {request.type} · {request.equipment?.name || "No equipment"}
-            </div>
-          </div>
-          <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: 11, color: "var(--text-soft)" }}>Status</div>
-            <div style={{ fontSize: 12, fontWeight: 500 }}>{request.status}</div>
-          </div>
-        </div>
-
-        <div className="card-body">
-          {/* Top info grid */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))",
-              gap: 12,
-              marginBottom: 16,
-            }}
-          >
-            <InfoBlock
-              label="Equipment"
-              value={request.equipment?.name || "Not set"}
-            />
-            <InfoBlock
-              label="Location"
-              value={request.equipment?.location || "Not set"}
-            />
-            <InfoBlock
-              label="Department"
-              value={request.equipment?.department || "Not set"}
-            />
-            <InfoBlock
-              label="Scheduled date"
-              value={
-                request.scheduledDate
-                  ? new Date(request.scheduledDate).toLocaleString()
-                  : "Not scheduled"
-              }
-            />
-          </div>
-
-          {/* Duration */}
-          <div className="form-group" style={{ maxWidth: 220 }}>
-            <label className="form-label">Hours spent (for repaired jobs)</label>
-            <input
-              type="number"
-              min="0"
-              step="0.5"
-              className="input"
-              value={duration}
-              onChange={(e) => setDuration(e.target.value)}
-              placeholder="e.g. 2.5"
-            />
-          </div>
-
-          {/* Status buttons */}
-          <div
-            style={{
-              marginTop: 14,
-              display: "flex",
-              flexWrap: "wrap",
-              gap: 8,
-            }}
-          >
-            {STATUSES.map((s) => (
-              <button
-                key={s}
-                type="button"
-                onClick={() => updateStatus(s)}
-                className={
-                  "btn " +
-                  (request.status === s ? "btn-primary" : "btn-outline")
-                }
-                disabled={savingStatus}
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={8}>
+          <Card elevation={8} sx={{ borderRadius: 3 }}>
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="h6" mb={2}>
+                Details
+              </Typography>
+              {/* request details */}
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <Card elevation={8} sx={{ borderRadius: 3, height: "fit-content" }}>
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="subtitle1" mb={2}>
+                Actions
+              </Typography>
+              <Button
+                fullWidth
+                variant="contained"
+                sx={{ mb: 2, borderRadius: 2 }}
               >
-                {s}
-              </button>
-            ))}
-          </div>
-
-          {overdue && (
-            <div
-              style={{
-                marginTop: 12,
-                fontSize: 11,
-                color: "#fecaca",
-                backgroundColor: "var(--danger-soft)",
-                border: "1px solid rgba(248,113,113,0.5)",
-                borderRadius: 8,
-                padding: "6px 8px",
-              }}
-            >
-              This request is overdue. Consider prioritizing or rescheduling it.
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+                Move to Repaired
+              </Button>
+              {/* other action buttons */}
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+    </Box>
   );
 };
 
@@ -164,9 +94,7 @@ const InfoBlock = ({ label, value }) => (
       fontSize: 12,
     }}
   >
-    <div
-      style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 4 }}
-    >
+    <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 4 }}>
       {label}
     </div>
     <div>{value}</div>

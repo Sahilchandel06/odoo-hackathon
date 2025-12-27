@@ -1,6 +1,20 @@
+// RegisterPage.jsx
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link as RouterLink } from "react-router-dom";
 import { useAuth } from "../AuthContext";
+import {
+  Box,
+  Card,
+  CardContent,
+  TextField,
+  Button,
+  Typography,
+  Fade,
+  CircularProgress,
+  Alert,
+  Link,
+  MenuItem,
+} from "@mui/material";
 
 const RegisterPage = () => {
   const { register, loading } = useAuth();
@@ -20,6 +34,7 @@ const RegisterPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
     try {
       await register(form);
       navigate("/login");
@@ -29,107 +44,243 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="auth-wrapper">
-      <div className="auth-card">
-        <div style={{ textAlign: "center", marginBottom: 14 }}>
-          <h1
-            style={{
-              fontSize: 18,
-              fontWeight: 600,
-            }}
-          >
-            Create a GearGuard account
-          </h1>
-          <p
-            style={{
-              marginTop: 4,
-              fontSize: 12,
-              color: "var(--text-soft)",
-            }}
-          >
-            Invite technicians and managers later from Teams.
-          </p>
-        </div>
+    <Fade in timeout={400}>
+      <Box
+        sx={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
+          px: 3,
+        }}
+      >
+        <Card
+          elevation={4}
+          sx={{
+            maxWidth: 480,
+            width: "100%",
+            bgcolor: "background.paper",
+            border: "1px solid",
+            borderColor: "divider",
+            borderRadius: 2,
+          }}
+        >
+          <CardContent sx={{ p: 4 }}>
+            <Box sx={{ display: "flex", alignItems: "center", mb: 4, gap: 2 }}>
+              <Box
+                sx={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 1.5,
+                  bgcolor: "primary.main",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontWeight: 700,
+                  fontSize: 18,
+                  color: "#fff",
+                }}
+              >
+                EM
+              </Box>
+              <Box>
+                <Typography variant="h5" fontWeight={700} color="text.primary">
+                  Equipment Manager
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Maintenance control center
+                </Typography>
+              </Box>
+            </Box>
 
-        <div className="card auth-card-inner">
-          {error && <div className="error-box">{error}</div>}
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="h6" fontWeight={600} gutterBottom>
+                Create your account
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Invite technicians and managers later from Teams.
+              </Typography>
+            </Box>
 
-          <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label className="form-label">Full name</label>
-              <input
-                className="input"
+            {error && (
+              <Alert severity="error" sx={{ mb: 3, borderRadius: 1.5 }}>
+                {error}
+              </Alert>
+            )}
+
+            <Box component="form" onSubmit={handleSubmit}>
+              <TextField
+                fullWidth
+                label="Full name"
                 name="name"
                 value={form.name}
                 onChange={handleChange}
                 required
+                sx={{
+                  mb: 2,
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 1.5,
+                    "& input": {
+                      color: "text.primary",
+                    },
+                    "&:hover fieldset": {
+                      borderColor: "primary.main",
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: "primary.main",
+                    },
+                  },
+                  "& .MuiInputLabel-root": {
+                    color: "text.secondary",
+                    "&.Mui-focused": {
+                      color: "primary.main",
+                    },
+                  },
+                }}
               />
-            </div>
 
-            <div className="form-group">
-              <label className="form-label">Email</label>
-              <input
+              <TextField
+                fullWidth
+                label="Email"
                 type="email"
-                className="input"
                 name="email"
                 value={form.email}
                 onChange={handleChange}
                 required
+                sx={{
+                  mb: 2,
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 1.5,
+                    "& input": {
+                      color: "text.primary",
+                    },
+                    "&:hover fieldset": {
+                      borderColor: "primary.main",
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: "primary.main",
+                    },
+                  },
+                  "& .MuiInputLabel-root": {
+                    color: "text.secondary",
+                    "&.Mui-focused": {
+                      color: "primary.main",
+                    },
+                  },
+                }}
               />
-            </div>
 
-            <div className="form-group">
-              <label className="form-label">Password</label>
-              <input
+              <TextField
+                fullWidth
+                label="Password"
                 type="password"
-                className="input"
                 name="password"
                 value={form.password}
                 onChange={handleChange}
                 required
+                sx={{
+                  mb: 2,
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 1.5,
+                    "& input": {
+                      color: "text.primary",
+                    },
+                    "&:hover fieldset": {
+                      borderColor: "primary.main",
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: "primary.main",
+                    },
+                  },
+                  "& .MuiInputLabel-root": {
+                    color: "text.secondary",
+                    "&.Mui-focused": {
+                      color: "primary.main",
+                    },
+                  },
+                }}
               />
-            </div>
 
-            <div className="form-group">
-              <label className="form-label">Role</label>
-              <select
-                className="select"
+              <TextField
+                fullWidth
+                select
+                label="Role"
                 name="role"
                 value={form.role}
                 onChange={handleChange}
+                sx={{
+                  mb: 3,
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 1.5,
+                    "& .MuiSelect-select": {
+                      color: "text.primary",
+                    },
+                    "&:hover fieldset": {
+                      borderColor: "primary.main",
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: "primary.main",
+                    },
+                  },
+                  "& .MuiInputLabel-root": {
+                    color: "text.secondary",
+                    "&.Mui-focused": {
+                      color: "primary.main",
+                    },
+                  },
+                }}
               >
-                <option value="Employee">Employee</option>
-                <option value="Technician">Technician</option>
-                <option value="Manager">Manager</option>
-              </select>
-            </div>
+                <MenuItem value="Employee">Employee</MenuItem>
+                <MenuItem value="Technician">Technician</MenuItem>
+                <MenuItem value="Manager">Manager</MenuItem>
+              </TextField>
 
-            <button
-              type="submit"
-              className="btn btn-primary"
-              style={{ width: "100%", marginTop: 4 }}
-              disabled={loading}
-            >
-              {loading ? "Creating..." : "Create account"}
-            </button>
-          </form>
-        </div>
+              <Button
+                fullWidth
+                type="submit"
+                variant="contained"
+                disabled={loading}
+                size="large"
+                sx={{
+                  py: 1.5,
+                  borderRadius: 1.5,
+                  fontWeight: 600,
+                  fontSize: 15,
+                  textTransform: "none",
+                }}
+              >
+                {loading ? (
+                  <CircularProgress size={24} color="inherit" />
+                ) : (
+                  "Create account"
+                )}
+              </Button>
+            </Box>
 
-        <p
-          style={{
-            marginTop: 12,
-            fontSize: 11,
-            textAlign: "center",
-            color: "var(--text-soft)",
-          }}
-        >
-          Already have an account?{" "}
-          <Link to="/login" className="link">
-            Sign in
-          </Link>
-        </p>
-      </div>
-    </div>
+            <Box sx={{ mt: 3, textAlign: "center" }}>
+              <Typography variant="body2" color="text.secondary">
+                Already have an account?{" "}
+                <Link
+                  component={RouterLink}
+                  to="/login"
+                  sx={{
+                    color: "primary.main",
+                    fontWeight: 600,
+                    textDecoration: "none",
+                    "&:hover": {
+                      textDecoration: "underline",
+                    },
+                  }}
+                >
+                  Sign in
+                </Link>
+              </Typography>
+            </Box>
+          </CardContent>
+        </Card>
+      </Box>
+    </Fade>
   );
 };
 

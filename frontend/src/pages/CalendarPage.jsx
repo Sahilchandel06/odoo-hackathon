@@ -4,6 +4,7 @@ import api from "../api";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
+import { Box } from '@mui/material';
 
 const CalendarPage = () => {
   const [requests, setRequests] = useState([]);
@@ -61,14 +62,22 @@ const CalendarPage = () => {
             </div>
           )}
           {!loading && (
-            <FullCalendar
-              plugins={[dayGridPlugin, interactionPlugin]}
-              initialView="dayGridMonth"
-              height="auto"
-              events={events}
-              dateClick={handleDateClick}
-              eventClick={handleEventClick}
-            />
+            <Box
+              sx={{
+                "& .fc .fc-col-header-cell": {
+                  backgroundColor: "background.paper",
+                },
+              }}
+            >
+              <FullCalendar
+                plugins={[dayGridPlugin, interactionPlugin]}
+                initialView="dayGridMonth"
+                height="auto"
+                events={events}
+                dateClick={handleDateClick}
+                eventClick={handleEventClick}
+              />
+            </Box>
           )}
         </div>
       </div>

@@ -1,103 +1,208 @@
+// LoginPage.jsx
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "../AuthContext";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";  // Change this line
+import api from "../api";
+import {
+  Box,
+  Card,
+  CardContent,
+  TextField,
+  Button,
+  Typography,
+  Fade,
+  CircularProgress,
+  Alert,
+  Link,
+} from "@mui/material";
 
 const LoginPage = () => {
-  const { login, loading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const { login } = useAuth();  // Change this line
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError("");
     try {
-      const ok = await login(email, password);
-      if (ok) navigate("/");
+      const res = await api.post("/auth/login", { email, password });
+      login(res.data);
+      navigate("/");
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="auth-wrapper">
-      <div className="auth-card">
-        <div style={{ textAlign: "center", marginBottom: 14 }}>
-          <div className="app-logo">GG</div>
-          <h1
-            style={{
-              marginTop: 10,
-              fontSize: 18,
-              fontWeight: 600,
-            }}
-          >
-            Sign in to GearGuard
-          </h1>
-          <p
-            style={{
-              marginTop: 4,
-              fontSize: 12,
-              color: "var(--text-soft)",
-            }}
-          >
-            Track equipment and maintenance in one workspace.
-          </p>
-        </div>
+    <Fade in timeout={400}>
+      <Box
+        sx={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
+          px: 3,
+        }}
+      >
+        <Card
+          elevation={4}
+          sx={{
+            maxWidth: 420,
+            width: "100%",
+            bgcolor: "background.paper",
+            border: "1px solid",
+            borderColor: "divider",
+            borderRadius: 2,
+          }}
+        >
+          <CardContent sx={{ p: 4 }}>
+            <Box sx={{ display: "flex", alignItems: "center", mb: 4, gap: 2 }}>
+              <Box
+                sx={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 1.5,
+                  bgcolor: "primary.main",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontWeight: 700,
+                  fontSize: 18,
+                  color: "#fff",
+                }}
+              >
+                EM
+              </Box>
+              <Box>
+                <Typography variant="h5" fontWeight={700} color="text.primary">
+                  Equipment Manager
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Maintenance control center
+                </Typography>
+              </Box>
+            </Box>
 
-        <div className="card auth-card-inner">
-          {error && <div className="error-box">{error}</div>}
+            <Typography variant="h6" mb={3} fontWeight={600}>
+              Welcome back
+            </Typography>
 
-          <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label className="form-label">Email</label>
-              <input
+            {error && (
+              <Alert severity="error" sx={{ mb: 2, borderRadius: 1.5 }}>
+                {error}
+              </Alert>
+            )}
+
+            <Box component="form" onSubmit={handleSubmit}>
+              <TextField
+                fullWidth
+                label="Email"
                 type="email"
-                className="input"
-                placeholder="you@company.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                sx={{
+                  mb: 2,
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 1.5,
+                    "& input": {
+                      color: "text.primary",
+                    },
+                    "&:hover fieldset": {
+                      borderColor: "primary.main",
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: "primary.main",
+                    },
+                  },
+                  "& .MuiInputLabel-root": {
+                    color: "text.secondary",
+                    "&.Mui-focused": {
+                      color: "primary.main",
+                    },
+                  },
+                }}
               />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Password</label>
-              <input
+              <TextField
+                fullWidth
+                label="Password"
                 type="password"
-                className="input"
-                placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                sx={{
+                  mb: 3,
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 1.5,
+                    "& input": {
+                      color: "text.primary",
+                    },
+                    "&:hover fieldset": {
+                      borderColor: "primary.main",
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: "primary.main",
+                    },
+                  },
+                  "& .MuiInputLabel-root": {
+                    color: "text.secondary",
+                    "&.Mui-focused": {
+                      color: "primary.main",
+                    },
+                  },
+                }}
               />
-            </div>
+              <Button
+                fullWidth
+                type="submit"
+                variant="contained"
+                disabled={loading}
+                size="large"
+                sx={{
+                  py: 1.5,
+                  borderRadius: 1.5,
+                  fontWeight: 600,
+                  fontSize: 15,
+                  textTransform: "none",
+                }}
+              >
+                {loading ? (
+                  <CircularProgress size={24} color="inherit" />
+                ) : (
+                  "Sign in"
+                )}
+              </Button>
+            </Box>
 
-            <button
-              type="submit"
-              className="btn btn-primary"
-              style={{ width: "100%", marginTop: 4 }}
-              disabled={loading}
-            >
-              {loading ? "Signing in..." : "Sign in"}
-            </button>
-          </form>
-        </div>
-
-        <p
-          style={{
-            marginTop: 12,
-            fontSize: 11,
-            textAlign: "center",
-            color: "var(--text-soft)",
-          }}
-        >
-          No account?{" "}
-          <Link to="/register" className="link">
-            Create one
-          </Link>
-        </p>
-      </div>
-    </div>
+            <Box sx={{ mt: 3, textAlign: "center" }}>
+              <Typography variant="body2" color="text.secondary">
+                Don't have an account?{" "}
+                <Link
+                  href="/register"
+                  sx={{
+                    color: "primary.main",
+                    fontWeight: 600,
+                    textDecoration: "none",
+                    "&:hover": {
+                      textDecoration: "underline",
+                    },
+                  }}
+                >
+                  Create one
+                </Link>
+              </Typography>
+            </Box>
+          </CardContent>
+        </Card>
+      </Box>
+    </Fade>
   );
 };
 
